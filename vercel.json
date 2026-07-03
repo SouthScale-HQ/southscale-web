@@ -1,0 +1,10 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/legal/byn-privacy", "destination": "/legal/byn-privacy.html" },
+    { "source": "/legal/byn-terms", "destination": "/legal/byn-terms.html" },
+    { "source": "/legal/byn-privacy/", "destination": "/legal/byn-privacy.html" },
+    { "source": "/legal/byn-terms/", "destination": "/legal/byn-terms.html" }
+  ]
+}
