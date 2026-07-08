@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BYN Admin — SouthScale</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0C0F14; --surface: #141820; --border: #1E2530;
+      --accent: #2FA86C; --accent-dim: #1c5f3f;
+      --text: #F0F2F5; --muted: #8A95A3; --dim: #4A5568;
+      --red: #C75146; --yellow: #D9A441; --mono: 'JetBrains Mono', monospace;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; }
+    .sg { font-family: 'Space Grotesk', sans-serif; }
+
+    /* ── Login ── */
+    #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+    .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px; max-width: 380px; width: 100%; }
+    .login-card h1 { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .login-card p { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+    .login-card input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; margin-bottom: 12px; outline: none; }
+    .login-card input:focus { border-color: var(--accent); }
+    .login-card button { width: 100%; padding: 11px; border-radius: 8px; border: none; background: var(--accent); color: #0A1F1A; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .login-card .err { color: var(--red); font-size: 12px; margin-top: 8px; }
+    #dashboard { display: none; }
+
+    /* ── Layout ── */
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-left .brand { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; }
+    .header-left .brand span { color: var(--accent); }
+    .header-left .badge { background: rgba(47,168,108,0.15); color: var(--accent); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; letter-spacing: 1px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .gen-time { font-size: 12px; color: var(--dim); font-family: var(--mono); }
+    .refresh-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
+    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .signout-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--dim); font-size: 12px; cursor: pointer; }
+
+    main { padding: 28px 24px; max-width: 1200px; margin: 0 auto; }
+
+    /* ── Sections ── */
+    .section { margin-bottom: 36px; }
+    .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .section-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+    /* ── Stat grid ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    .stat-card .label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .stat-card .value { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--text); }
+    .stat-card .sub { font-size: 11px; color: var(--dim); margin-top: 4px; }
+    .stat-card.green { border-color: var(--accent-dim); }
+    .stat-card.green .value { color: var(--accent); }
+    .stat-card.red { border-color: #3a1a1a; }
+    .stat-card.red .value { color: var(--red); }
+    .stat-card.yellow { border-color: #3a2a10; }
+    .stat-card.yellow .value { color: var(--yellow); }
+
+    /* ── Tables ── */
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #0C0F14; color: var(--muted); font-weight: 600; text-align: left; padding: 10px 14px; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; }
+    td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--text); }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .mono { font-family: var(--mono); font-size: 12px; }
+    .badge-green { background: rgba(47,168,108,0.15); color: var(--accent); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+    .badge-yellow { background: rgba(217,164,65,0.15); color: var(--yellow); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+    .badge-red { background: rgba(199,81,70,0.15); color: var(--red); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+
+    /* ── Health alerts ── */
+    .alert { border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
+    .alert.ok { background: rgba(47,168,108,0.08); border: 1px solid var(--accent-dim); color: var(--accent); }
+    .alert.warn { background: rgba(217,164,65,0.08); border: 1px solid #3a2a10; color: var(--yellow); }
+    .alert.err { background: rgba(199,81,70,0.08); border: 1px solid #3a1a1a; color: var(--red); }
+
+    /* ── Two col ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* ── Loading ── */
+    #loading { display: none; text-align: center; padding: 60px; color: var(--muted); }
+    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- ── Login screen ── -->
+<div id="login">
+  <div class="login-card">
+    <h1 class="sg">BYN Admin</h1>
+    <p>Internal dashboard — SouthScale only. Not linked publicly.</p>
+    <input type="password" id="pwd-input" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button onclick="doLogin()">Sign in →</button>
+    <div class="err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ── Loading ── -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Loading stats…</p>
+</div>
+
+<!-- ── Dashboard ── -->
+<div id="dashboard">
+  <header>
+    <div class="header-left">
+      <div class="brand sg">South<span>Scale</span></div>
+      <div class="badge">ADMIN</div>
+      <div class="badge" style="background:rgba(47,168,108,0.08);color:#7FBFA0;">BYN</div>
+    </div>
+    <div class="header-right">
+      <span class="gen-time" id="gen-time">—</span>
+      <button class="refresh-btn" onclick="loadStats()">↻ Refresh</button>
+      <button class="signout-btn" onclick="signOut()">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ── Platform health ── -->
+    <div class="section">
+      <div class="section-title"><div class="dot"></div>Platform health</div>
+      <div id="health-alerts"></div>
+    </div>
+
+    <!-- ── Users ── -->
+    <div class="section">
+      <div class="section-title"><div class="dot"></div>Users</div>
+      <div class="stat-grid" id="user-stats"></div>
+    </div>
+
+    <!-- ── Users breakdown ── -->
+    <div class="two-col" style="margin-bottom:36px;">
+      <div>
+        <div class="section-title" style="margin-bottom:10px;"><div class="dot"></div>Top countries</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Country</th><th>Users</th></tr></thead>
+            <tbody id="countries-table"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="section-title" style="margin-bottom:10px;"><div class="dot"></div>Engagement</div>
+        <div class="stat-grid" id="engagement-stats"></div>
+      </div>
+    </div>
+
+    <!-- ── Bets ── -->
+    <div class="section">
+      <div class="section-title"><div class="dot"></div>Bets</div>
+      <div class="stat-grid" id="bet-stats"></div>
+    </div>
+
+    <!-- ── Competitions ── -->
+    <div class="section">
+      <div class="section-title"><div class="dot"></div>Competitions</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Competition</th><th>Total bets</th><th>This week</th><th>Avg stake</th><th>Wallets</th><th>Total nuts</th></tr></thead>
+          <tbody id="comp-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Rounds ── -->
+    <div class="section">
+      <div class="section-title"><div class="dot"></div>Rounds</div>
+      <div class="stat-grid" id="round-stats"></div>
+      <div style="margin-top:14px;" id="open-rounds-table"></div>
+    </div>
+
+    <!-- ── Leagues ── -->
+    <div class="section">
+      <div class="section-title"><div class="dot"></div>Leagues</div>
+      <div class="stat-grid" id="league-stats" style="margin-bottom:14px;"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>League name</th><th>Members</th><th>Status</th></tr></thead>
+          <tbody id="league-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  let storedPassword = ''
+
+  function doLogin() {
+    const pwd = document.getElementById('pwd-input').value
+    if (!pwd) return
+    storedPassword = pwd
+    document.getElementById('login').style.display = 'none'
+    document.getElementById('loading').style.display = 'block'
+    loadStats()
+  }
+
+  function signOut() {
+    storedPassword = ''
+    location.reload()
+  }
+
+  async function loadStats() {
+    document.getElementById('loading').style.display = 'block'
+    document.getElementById('dashboard').style.display = 'none'
+
+    try {
+      const res = await fetch('/api/admin-stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: storedPassword }),
+      })
+
+      if (res.status === 401) {
+        document.getElementById('loading').style.display = 'none'
+        document.getElementById('login').style.display = 'flex'
+        document.getElementById('login-err').textContent = 'Incorrect password.'
+        return
+      }
+
+      const d = await res.json()
+      renderDashboard(d)
+      document.getElementById('loading').style.display = 'none'
+      document.getElementById('dashboard').style.display = 'block'
+    } catch (err) {
+      document.getElementById('loading').style.display = 'none'
+      alert('Failed to load stats: ' + err.message)
+    }
+  }
+
+  function statCard(label, value, sub = '', cls = '') {
+    return `<div class="stat-card ${cls}"><div class="label">${label}</div><div class="value">${value}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div>`
+  }
+
+  function alert_(cls, icon, msg) {
+    return `<div class="alert ${cls}"><span>${icon}</span><span>${msg}</span></div>`
+  }
+
+  function timeSince(iso) {
+    const d = (Date.now() - new Date(iso)) / 1000
+    if (d < 3600) return Math.round(d / 60) + 'm ago'
+    if (d < 86400) return Math.round(d / 3600) + 'h ago'
+    return Math.round(d / 86400) + 'd ago'
+  }
+
+  function renderDashboard(d) {
+    // Generated at
+    document.getElementById('gen-time').textContent =
+      'Generated ' + new Date(d.generatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+
+    // ── Health ──
+    const health = []
+    if (d.health.unsettledBetsOver48h === 0) {
+      health.push(alert_('ok', '✓', 'All bets settled within 48 hours — no stale bets.'))
+    } else {
+      health.push(alert_('err', '⚠', `${d.health.unsettledBetsOver48h} unsettled bet${d.health.unsettledBetsOver48h > 1 ? 's' : ''} older than 48 hours — needs attention.`))
+    }
+    if (d.rounds.currentlyOpen > 0) {
+      health.push(alert_('ok', '✓', `${d.rounds.currentlyOpen} round${d.rounds.currentlyOpen > 1 ? 's' : ''} currently open for betting.`))
+    } else {
+      health.push(alert_('warn', '⚠', 'No rounds currently open — check competition settings.'))
+    }
+    if (d.users.total === 0) {
+      health.push(alert_('warn', 'ℹ', 'No registered users yet.'))
+    } else {
+      health.push(alert_('ok', '✓', `Platform operational — ${d.users.total} registered user${d.users.total > 1 ? 's' : ''}.`))
+    }
+    document.getElementById('health-alerts').innerHTML = health.join('')
+
+    // ── Users ──
+    document.getElementById('user-stats').innerHTML = [
+      statCard('Total users', d.users.total, '', 'green'),
+      statCard('New this week', d.users.newThisWeek),
+      statCard('New this month', d.users.newThisMonth),
+      statCard('Active (30 days)', d.users.activeLast30Days, 'placed at least 1 bet', 'green'),
+      statCard('Inactive', d.users.inactive, 'no bets in 30 days'),
+    ].join('')
+
+    // Countries
+    document.getElementById('countries-table').innerHTML =
+      (d.users.topCountries || []).map(c =>
+        `<tr><td>${c.country}</td><td class="mono">${c.count}</td></tr>`
+      ).join('') || '<tr><td colspan="2" style="color:var(--dim)">No data</td></tr>'
+
+    // ── Engagement ──
+    document.getElementById('engagement-stats').innerHTML = [
+      statCard('Ad views this week', d.engagement.adViewsThisWeek),
+      statCard('Unique ad viewers', d.engagement.adViewUniqueUsers),
+    ].join('')
+
+    // ── Bets ──
+    document.getElementById('bet-stats').innerHTML = [
+      statCard('Total bets', d.bets.total, 'all time', 'green'),
+      statCard('Bets this week', d.bets.thisWeek),
+      statCard('Avg stake', d.bets.avgStakeAllTime ? d.bets.avgStakeAllTime + ' nuts' : '—'),
+      statCard('Settled', d.bets.settled),
+      statCard('Unsettled', d.bets.unsettled, 'active rounds', d.bets.unsettled > 0 ? 'yellow' : ''),
+    ].join('')
+
+    // ── Competitions ──
+    document.getElementById('comp-table').innerHTML =
+      (d.competitions || []).map(c =>
+        `<tr>
+          <td class="sg" style="font-weight:600;">${c.name}</td>
+          <td class="mono">${c.totalBets}</td>
+          <td class="mono">${c.betsThisWeek}</td>
+          <td class="mono">${c.avgStake > 0 ? c.avgStake + ' nuts' : '—'}</td>
+          <td class="mono">${c.activeWallets}</td>
+          <td class="mono">${c.totalBalance.toLocaleString()} nuts</td>
+        </tr>`
+      ).join('') || '<tr><td colspan="6" style="color:var(--dim)">No data</td></tr>'
+
+    // ── Rounds ──
+    document.getElementById('round-stats').innerHTML = [
+      statCard('Open rounds', d.rounds.currentlyOpen, 'accepting bets', d.rounds.currentlyOpen > 0 ? 'green' : 'yellow'),
+      statCard('Settled this week', d.rounds.settledThisWeek),
+      statCard('Stale bets (>48h)', d.health.unsettledBetsOver48h, 'unsettled', d.health.unsettledBetsOver48h > 0 ? 'red' : ''),
+    ].join('')
+
+    if (d.rounds.openDetails?.length) {
+      document.getElementById('open-rounds-table').innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Round</th><th>Open since</th></tr></thead>
+            <tbody>${d.rounds.openDetails.map(r =>
+              `<tr><td class="mono">Round ${r.roundNumber}</td><td class="mono">${timeSince(r.openSince)}</td></tr>`
+            ).join('')}</tbody>
+          </table>
+        </div>`
+    }
+
+    // ── Leagues ──
+    document.getElementById('league-stats').innerHTML = [
+      statCard('Total leagues', d.leagues.total),
+      statCard('Approved', d.leagues.approved, '', 'green'),
+      statCard('Pending approval', d.leagues.pending, '', d.leagues.pending > 0 ? 'yellow' : ''),
+    ].join('')
+
+    document.getElementById('league-table').innerHTML =
+      (d.leagues.topLeagues || []).map(l =>
+        `<tr>
+          <td>${l.name}</td>
+          <td class="mono">${l.members}</td>
+          <td><span class="badge-${l.status === 'approved' ? 'green' : 'yellow'}">${l.status}</span></td>
+        </tr>`
+      ).join('') || '<tr><td colspan="3" style="color:var(--dim)">No leagues yet</td></tr>'
+  }
+
+  // Auto-focus password field
+  document.getElementById('pwd-input').focus()
+</script>
+
+</body>
+</html>
