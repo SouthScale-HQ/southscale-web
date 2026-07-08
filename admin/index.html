@@ -226,6 +226,13 @@
       }
 
       const d = await res.json()
+
+      if (!res.ok) {
+        document.getElementById('loading').style.display = 'none'
+        alert('Server error: ' + (d.error || res.status))
+        document.getElementById('login').style.display = 'flex'
+        return
+      }
       renderDashboard(d)
       document.getElementById('loading').style.display = 'none'
       document.getElementById('dashboard').style.display = 'block'
@@ -251,6 +258,14 @@
   }
 
   function renderDashboard(d) {
+    // Defensive defaults in case any section is missing
+    d.users = d.users || { total: 0, newThisWeek: 0, newThisMonth: 0, activeLast30Days: 0, inactive: 0, topCountries: [] }
+    d.bets = d.bets || { total: 0, thisWeek: 0, avgStakeAllTime: 0, settled: 0, unsettled: 0 }
+    d.competitions = d.competitions || []
+    d.rounds = d.rounds || { currentlyOpen: 0, openDetails: [], settledThisWeek: 0 }
+    d.health = d.health || { unsettledBetsOver48h: 0, unsettledDetails: [] }
+    d.leagues = d.leagues || { total: 0, approved: 0, pending: 0, topLeagues: [] }
+    d.engagement = d.engagement || { adViewsThisWeek: 0, adViewUniqueUsers: 0 }
     // Generated at
     document.getElementById('gen-time').textContent =
       'Generated ' + new Date(d.generatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
