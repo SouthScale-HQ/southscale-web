@@ -391,7 +391,8 @@ async function fetchCompFixtures(comp) {
 
     return {
       fixtures: data.fixtures || [],
-      nextFixtureDate: data.nextFixture || data.seasonOpens || null,
+      nextFixtureDate: data.nextFixture || data.nextFixtureDate || data.seasonOpens || data.fixtures?.[0]?.kickoff || null,
+      nextFixtureName: data.nextFixtureName || null,
     }
   } catch {
     return { fixtures: [], nextFixtureDate: null }
@@ -419,52 +420,62 @@ async function loadFixtures() {
     return { comp, ...data }
   }))
 
-  let html = ''
-  const withFixtures = results.filter(r => r.fixtures.length > 0)
-  const noFixtures = results.filter(r => r.fixtures.length === 0)
-
-  // Sort: by earliest fixture date
-  withFixtures.sort((a, b) => {
-    const da = new Date(a.fixtures[0]?.kickoff || '9999')
-    const db = new Date(b.fixtures[0]?.kickoff || '9999')
-    return da - db
+  // Determine the effective "next date" for each competition
+  const enriched = results.map(r => {
+    const currentFixtureDate = r.fixtures[0]?.kickoff || null
+    const nextDate = currentFixtureDate || r.nextFixtureDate || null
+    const daysUntil = nextDate ? Math.round((new Date(nextDate) - new Date()) / (1000*60*60*24)) : null
+    return { ...r, nextDate, daysUntil }
   })
 
-  if (withFixtures.length) {
-    withFixtures.forEach(({ comp, fixtures, nextFixtureDate }) => {
-      const next = fixtures[0]
-      const date = formatDate(next?.kickoff)
-      const daysUntil = next?.kickoff ? Math.round((new Date(next.kickoff) - new Date()) / (1000*60*60*24)) : null
-      const badge = daysUntil !== null && daysUntil <= 0 ? '<span class="badge-red">Live</span>'
-        : daysUntil !== null && daysUntil <= 7 ? '<span class="badge-yellow">This week</span>'
-        : '<span class="badge-green">Upcoming</span>'
-      html += `<div class="fixture-row">
-        <div class="fixture-comp"><span class="icon">${comp.icon}</span>${comp.name}</div>
-        <div class="fixture-detail">${next?.name || next?.stage || '—'}</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          ${badge}
-          <div class="fixture-date mono">${date}</div>
-        </div>
-      </div>`
-    })
-  }
+  // Sort by next fixture date ascending (TBC/null last)
+  enriched.sort((a, b) => {
+    if (!a.nextDate && !b.nextDate) return 0
+    if (!a.nextDate) return 1
+    if (!b.nextDate) return -1
+    return new Date(a.nextDate) - new Date(b.nextDate)
+  })
 
-  if (noFixtures.length) {
-    html += `<div style="padding:10px 14px;background:var(--bg);font-size:11px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-weight:600;border-top:1px solid var(--border)">No current fixtures</div>`
-    noFixtures.forEach(({ comp, nextFixtureDate }) => {
-      const nextLabel = nextFixtureDate ? formatDate(nextFixtureDate) : 'TBC'
-      html += `<div class="fixture-row">
-        <div class="fixture-comp"><span class="icon">${comp.icon}</span>${comp.name}</div>
-        <div class="fixture-detail" style="color:var(--dim)">No fixtures in next 21 days</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span class="badge-dim">Off-season</span>
-          <div class="fixture-date mono" style="color:var(--dim)">Next: ${nextLabel}</div>
-        </div>
-      </div>`
-    })
-  }
+  let html = `
+    <div style="padding:10px 14px;background:var(--bg);font-size:11px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-weight:600;display:grid;grid-template-columns:200px 1fr 160px 180px;gap:8px;">
+      <span>Competition</span><span>Next match</span><span>Status</span><span>Date</span>
+    </div>`
 
-  container.innerHTML = html || '<div style="padding:24px;text-align:center;color:var(--dim)">No fixture data available</div>'
+  enriched.forEach(({ comp, fixtures, nextFixtureDate, nextFixtureName, nextDate, daysUntil }) => {
+    const hasCurrentFixtures = fixtures.length > 0
+    const nextMatchName = hasCurrentFixtures
+      ? (fixtures[0]?.name || fixtures[0]?.stage || '—')
+      : (nextFixtureName || (nextFixtureDate ? 'Season opener' : 'TBC'))
+
+    let badge, dateColor
+    if (daysUntil !== null && daysUntil <= 0) {
+      badge = '<span class="badge-red">🔴 Active now</span>'; dateColor = 'var(--red)'
+    } else if (daysUntil !== null && daysUntil <= 7) {
+      badge = '<span class="badge-yellow">⚡ This week</span>'; dateColor = 'var(--yellow)'
+    } else if (daysUntil !== null && daysUntil <= 30) {
+      badge = '<span class="badge-green">📅 This month</span>'; dateColor = 'var(--accent)'
+    } else if (daysUntil !== null) {
+      badge = `<span class="badge-dim">📆 In ${daysUntil}d</span>`; dateColor = 'var(--muted)'
+    } else {
+      badge = '<span class="badge-dim">TBC</span>'; dateColor = 'var(--dim)'
+    }
+
+    const dateLabel = nextDate
+      ? new Date(nextDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+      : '—'
+
+    html += `<div class="fixture-row" style="display:grid;grid-template-columns:200px 1fr 160px 180px;gap:8px;align-items:center;">
+      <div class="fixture-comp" style="min-width:unset"><span class="icon">${comp.icon}</span>${comp.name}</div>
+      <div class="fixture-detail" style="${!hasCurrentFixtures?'color:var(--dim)':''}">
+        ${nextMatchName}
+        ${fixtures.length > 1 ? `<span style="color:var(--dim);font-size:11px"> +${fixtures.length-1} more</span>` : ''}
+      </div>
+      <div>${badge}</div>
+      <div class="mono" style="font-size:12px;color:${dateColor}">${dateLabel}</div>
+    </div>`
+  })
+
+  container.innerHTML = html
 }
 
 // ── Backlog ───────────────────────────────────────────────────────────────────
