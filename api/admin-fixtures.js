@@ -5,6 +5,10 @@ const BYN = 'https://www.bynapp.online'
 
 const COMPETITIONS = [
   { key: 'epl',           name: 'Premier League',       icon: '⚽', url: `${BYN}/api/football-model?competitionKey=epl` },
+  { key: 'championship',  name: 'Championship',          icon: '⚽', url: `${BYN}/api/football-model?competitionKey=championship` },
+  { key: 'league_one',    name: 'League One',            icon: '⚽', url: `${BYN}/api/football-model?competitionKey=league_one` },
+  { key: 'league_two',    name: 'League Two',            icon: '⚽', url: `${BYN}/api/football-model?competitionKey=league_two` },
+  { key: 'national_league', name: 'National League',     icon: '⚽', url: `${BYN}/api/football-model?competitionKey=national_league` },
   { key: 'laliga',        name: 'La Liga',              icon: '⚽', url: `${BYN}/api/football-model?competitionKey=laliga` },
   { key: 'ucl',           name: 'Champions League',     icon: '⚽', url: `${BYN}/api/football-model?competitionKey=ucl` },
   { key: 'fifa_wc',       name: 'FIFA WC 26',           icon: '⚽', url: `${BYN}/api/football-model?competitionKey=fifa_wc` },
