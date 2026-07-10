@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>BYN Admin — SouthScale</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,25 +29,31 @@
     #dashboard { display: none; }
 
     /* ── Layout ── */
-    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 10; }
     .header-left { display: flex; align-items: center; gap: 10px; }
-    .header-left .brand { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; }
-    .header-left .brand span { color: var(--accent); }
-    .header-left .badge { background: rgba(47,168,108,0.15); color: var(--accent); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; letter-spacing: 1px; }
-    .header-right { display: flex; align-items: center; gap: 12px; }
-    .gen-time { font-size: 12px; color: var(--dim); font-family: var(--mono); }
-    .refresh-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
-    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .signout-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--dim); font-size: 12px; cursor: pointer; }
+    .brand { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; }
+    .brand span { color: var(--accent); }
+    .badge { background: rgba(47,168,108,0.15); color: var(--accent); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; letter-spacing: 1px; }
+    .header-right { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+    .gen-time { color: var(--dim); font-family: var(--mono); }
+    .hbtn { padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
+    .hbtn:hover { border-color: var(--accent); color: var(--accent); }
 
+    /* ── Tab nav ── */
+    .tab-nav { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; padding: 0 24px; gap: 0; }
+    .tab-btn { padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--muted); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* ── Main ── */
     main { padding: 28px 24px; max-width: 1200px; margin: 0 auto; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
-    /* ── Sections ── */
+    /* ── Components ── */
     .section { margin-bottom: 36px; }
     .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
     .section-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-
-    /* ── Stat grid ── */
     .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
     .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
     .stat-card .label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
@@ -54,58 +61,73 @@
     .stat-card .sub { font-size: 11px; color: var(--dim); margin-top: 4px; }
     .stat-card.green { border-color: var(--accent-dim); }
     .stat-card.green .value { color: var(--accent); }
-    .stat-card.red { border-color: #3a1a1a; }
     .stat-card.red .value { color: var(--red); }
-    .stat-card.yellow { border-color: #3a2a10; }
     .stat-card.yellow .value { color: var(--yellow); }
-
-    /* ── Tables ── */
     .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { background: #0C0F14; color: var(--muted); font-weight: 600; text-align: left; padding: 10px 14px; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; }
+    th { background: var(--bg); color: var(--muted); font-weight: 600; text-align: left; padding: 10px 14px; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; }
     td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--text); }
     tr:hover td { background: rgba(255,255,255,0.02); }
     .mono { font-family: var(--mono); font-size: 12px; }
     .badge-green { background: rgba(47,168,108,0.15); color: var(--accent); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
     .badge-yellow { background: rgba(217,164,65,0.15); color: var(--yellow); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
     .badge-red { background: rgba(199,81,70,0.15); color: var(--red); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
-
-    /* ── Health alerts ── */
+    .badge-dim { background: rgba(255,255,255,0.05); color: var(--dim); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
     .alert { border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
-    .alert.ok { background: rgba(47,168,108,0.08); border: 1px solid var(--accent-dim); color: var(--accent); }
+    .alert.ok  { background: rgba(47,168,108,0.08); border: 1px solid var(--accent-dim); color: var(--accent); }
     .alert.warn { background: rgba(217,164,65,0.08); border: 1px solid #3a2a10; color: var(--yellow); }
-    .alert.err { background: rgba(199,81,70,0.08); border: 1px solid #3a1a1a; color: var(--red); }
-
-    /* ── Two col ── */
+    .alert.err  { background: rgba(199,81,70,0.08); border: 1px solid #3a1a1a; color: var(--red); }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
-
-    /* ── Loading ── */
-    #loading { display: none; text-align: center; padding: 60px; color: var(--muted); }
+    #loading { text-align: center; padding: 60px; color: var(--muted); }
     .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Fixtures tab ── */
+    .fixture-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-top: 1px solid var(--border); gap: 12px; }
+    .fixture-row:first-child { border-top: none; }
+    .fixture-comp { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px; min-width: 160px; }
+    .fixture-comp .icon { font-size: 18px; }
+    .fixture-detail { font-size: 12px; color: var(--muted); flex: 1; }
+    .fixture-date { font-size: 12px; color: var(--text); font-family: var(--mono); text-align: right; min-width: 120px; }
+    .fixture-loading { display: flex; align-items: center; gap: 6px; }
+    .dot-pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── Backlog tab ── */
+    .backlog-content { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .backlog-content h2 { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; margin: 24px 0 10px; color: var(--text); }
+    .backlog-content h2:first-child { margin-top: 0; }
+    .backlog-content h3 { font-size: 14px; font-weight: 600; margin: 16px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .backlog-content ul { list-style: none; padding: 0; }
+    .backlog-content li { padding: 5px 0; font-size: 13px; color: var(--text); border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 8px; align-items: flex-start; line-height: 1.5; }
+    .backlog-content li::before { content: '○'; color: var(--dim); flex-shrink: 0; font-size: 10px; margin-top: 3px; }
+    .backlog-content li.done { color: var(--dim); }
+    .backlog-content li.done::before { content: '✓'; color: var(--accent); }
+    .backlog-content p { font-size: 13px; color: var(--muted); margin: 8px 0; }
+    .backlog-content strong { color: var(--text); }
+    .backlog-content table { margin: 8px 0; }
+    .refresh-bar { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--dim); margin-bottom: 16px; }
+    .refresh-progress { flex: 1; max-width: 200px; height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; }
+    .refresh-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 1s linear; }
   </style>
 </head>
 <body>
 
-<!-- ── Login screen ── -->
+<!-- Login -->
 <div id="login">
   <div class="login-card">
     <h1 class="sg">BYN Admin</h1>
-    <p>Internal dashboard — SouthScale only. Not linked publicly.</p>
-    <input type="password" id="pwd-input" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <p>Internal dashboard — SouthScale only.</p>
+    <input type="password" id="pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/>
     <button onclick="doLogin()">Sign in →</button>
     <div class="err" id="login-err"></div>
   </div>
 </div>
 
-<!-- ── Loading ── -->
-<div id="loading">
-  <div class="spinner"></div>
-  <p>Loading stats…</p>
-</div>
+<div id="loading" style="display:none"><div class="spinner"></div><p>Loading...</p></div>
 
-<!-- ── Dashboard ── -->
+<!-- Dashboard -->
 <div id="dashboard">
   <header>
     <div class="header-left">
@@ -115,75 +137,52 @@
     </div>
     <div class="header-right">
       <span class="gen-time" id="gen-time">—</span>
-      <button class="refresh-btn" onclick="loadStats()">↻ Refresh</button>
-      <button class="signout-btn" onclick="signOut()">Sign out</button>
+      <button class="hbtn" onclick="refreshAll()">↻ Refresh</button>
+      <button class="hbtn" onclick="signOut()">Sign out</button>
     </div>
   </header>
 
+  <!-- Tab nav -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('stats')">📊 Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('fixtures')">📅 Fixtures</button>
+    <button class="tab-btn" onclick="switchTab('backlog')">📋 Backlog</button>
+  </div>
+
   <main>
 
-    <!-- ── Platform health ── -->
-    <div class="section">
-      <div class="section-title"><div class="dot"></div>Platform health</div>
-      <div id="health-alerts"></div>
-    </div>
-
-    <!-- ── Users ── -->
-    <div class="section">
-      <div class="section-title"><div class="dot"></div>Users</div>
-      <div class="stat-grid" id="user-stats"></div>
-    </div>
-
-    <!-- ── Users breakdown ── -->
-    <div class="two-col" style="margin-bottom:36px;">
-      <div>
-        <div class="section-title" style="margin-bottom:10px;"><div class="dot"></div>Top countries</div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Country</th><th>Users</th></tr></thead>
-            <tbody id="countries-table"></tbody>
-          </table>
-        </div>
+    <!-- ── Stats tab ── -->
+    <div id="tab-stats" class="tab-content active">
+      <div class="refresh-bar">
+        <span>Auto-refresh every 5 min</span>
+        <div class="refresh-progress"><div class="refresh-fill" id="refresh-fill" style="width:100%"></div></div>
+        <span id="refresh-countdown">5:00</span>
       </div>
-      <div>
-        <div class="section-title" style="margin-bottom:10px;"><div class="dot"></div>Engagement</div>
-        <div class="stat-grid" id="engagement-stats"></div>
+      <div class="section"><div class="section-title"><div class="dot"></div>Platform health</div><div id="health-alerts"></div></div>
+      <div class="section"><div class="section-title"><div class="dot"></div>Users</div><div class="stat-grid" id="user-stats"></div></div>
+      <div class="two-col" style="margin-bottom:36px;">
+        <div><div class="section-title" style="margin-bottom:10px;"><div class="dot"></div>Top countries</div><div class="table-wrap"><table><thead><tr><th>Country</th><th>Users</th></tr></thead><tbody id="countries-table"></tbody></table></div></div>
+        <div><div class="section-title" style="margin-bottom:10px;"><div class="dot"></div>Engagement</div><div class="stat-grid" id="engagement-stats"></div></div>
+      </div>
+      <div class="section"><div class="section-title"><div class="dot"></div>Bets</div><div class="stat-grid" id="bet-stats"></div></div>
+      <div class="section"><div class="section-title"><div class="dot"></div>Competitions</div><div class="table-wrap"><table><thead><tr><th>Competition</th><th>Total bets</th><th>This week</th><th>Avg stake</th><th>Wallets</th><th>Total nuts</th></tr></thead><tbody id="comp-table"></tbody></table></div></div>
+      <div class="section"><div class="section-title"><div class="dot"></div>Rounds</div><div class="stat-grid" id="round-stats"></div><div style="margin-top:14px;" id="open-rounds-table"></div></div>
+      <div class="section"><div class="section-title"><div class="dot"></div>Leagues</div><div class="stat-grid" id="league-stats" style="margin-bottom:14px;"></div><div class="table-wrap"><table><thead><tr><th>League name</th><th>Members</th><th>Status</th></tr></thead><tbody id="league-table"></tbody></table></div></div>
+    </div>
+
+    <!-- ── Fixtures tab ── -->
+    <div id="tab-fixtures" class="tab-content">
+      <div class="section-title"><div class="dot"></div>All competitions — next fixtures</div>
+      <div class="table-wrap" id="fixtures-table">
+        <div style="padding:24px;text-align:center;color:var(--muted)">Loading fixtures...</div>
       </div>
     </div>
 
-    <!-- ── Bets ── -->
-    <div class="section">
-      <div class="section-title"><div class="dot"></div>Bets</div>
-      <div class="stat-grid" id="bet-stats"></div>
-    </div>
-
-    <!-- ── Competitions ── -->
-    <div class="section">
-      <div class="section-title"><div class="dot"></div>Competitions</div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Competition</th><th>Total bets</th><th>This week</th><th>Avg stake</th><th>Wallets</th><th>Total nuts</th></tr></thead>
-          <tbody id="comp-table"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ── Rounds ── -->
-    <div class="section">
-      <div class="section-title"><div class="dot"></div>Rounds</div>
-      <div class="stat-grid" id="round-stats"></div>
-      <div style="margin-top:14px;" id="open-rounds-table"></div>
-    </div>
-
-    <!-- ── Leagues ── -->
-    <div class="section">
-      <div class="section-title"><div class="dot"></div>Leagues</div>
-      <div class="stat-grid" id="league-stats" style="margin-bottom:14px;"></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>League name</th><th>Members</th><th>Status</th></tr></thead>
-          <tbody id="league-table"></tbody>
-        </table>
+    <!-- ── Backlog tab ── -->
+    <div id="tab-backlog" class="tab-content">
+      <div class="section-title"><div class="dot"></div>BYN product backlog</div>
+      <div class="backlog-content" id="backlog-content">
+        <div style="text-align:center;padding:24px;color:var(--muted)">Loading backlog...</div>
       </div>
     </div>
 
@@ -191,186 +190,338 @@
 </div>
 
 <script>
-  let storedPassword = ''
+let storedPassword = ''
+let refreshTimer = null
+let countdownTimer = null
+let refreshSecondsLeft = 300
 
-  function doLogin() {
-    const pwd = document.getElementById('pwd-input').value
-    if (!pwd) return
-    storedPassword = pwd
-    document.getElementById('login').style.display = 'none'
-    document.getElementById('loading').style.display = 'block'
-    loadStats()
-  }
+const BYN = 'https://www.bynapp.online'
+const GITHUB_BACKLOG = 'https://raw.githubusercontent.com/SouthScale-HQ/byn-test/main/docs/backlog.md'
 
-  function signOut() {
-    storedPassword = ''
-    location.reload()
-  }
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function doLogin() {
+  const pwd = document.getElementById('pwd').value
+  if (!pwd) return
+  storedPassword = pwd
+  document.getElementById('login').style.display = 'none'
+  document.getElementById('loading').style.display = 'block'
+  loadStats().then(() => {
+    document.getElementById('loading').style.display = 'none'
+    document.getElementById('dashboard').style.display = 'block'
+    startAutoRefresh()
+  })
+}
 
-  async function loadStats() {
-    document.getElementById('loading').style.display = 'block'
-    document.getElementById('dashboard').style.display = 'none'
+function signOut() {
+  storedPassword = ''
+  clearInterval(refreshTimer)
+  clearInterval(countdownTimer)
+  location.reload()
+}
 
-    try {
-      const res = await fetch('/api/admin-stats', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: storedPassword }),
-      })
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'))
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+  document.getElementById('tab-' + name).classList.add('active')
+  event.target.classList.add('active')
 
-      if (res.status === 401) {
-        document.getElementById('loading').style.display = 'none'
-        document.getElementById('login').style.display = 'flex'
-        document.getElementById('login-err').textContent = 'Incorrect password.'
-        return
-      }
+  if (name === 'fixtures') loadFixtures()
+  if (name === 'backlog') loadBacklog()
+}
 
-      const d = await res.json()
+// ── Auto-refresh (Dashboard only) ────────────────────────────────────────────
+function startAutoRefresh() {
+  refreshSecondsLeft = 300
+  updateCountdown()
 
-      if (!res.ok) {
-        document.getElementById('loading').style.display = 'none'
-        alert('Server error: ' + (d.error || res.status))
-        document.getElementById('login').style.display = 'flex'
-        return
-      }
-      renderDashboard(d)
+  countdownTimer = setInterval(() => {
+    refreshSecondsLeft--
+    updateCountdown()
+    const pct = (refreshSecondsLeft / 300) * 100
+    document.getElementById('refresh-fill').style.width = pct + '%'
+    if (refreshSecondsLeft <= 0) {
+      refreshSecondsLeft = 300
+      loadStats()
+    }
+  }, 1000)
+}
+
+function updateCountdown() {
+  const m = Math.floor(refreshSecondsLeft / 60)
+  const s = refreshSecondsLeft % 60
+  document.getElementById('refresh-countdown').textContent = `${m}:${s.toString().padStart(2, '0')}`
+}
+
+function refreshAll() {
+  refreshSecondsLeft = 300
+  updateCountdown()
+  document.getElementById('refresh-fill').style.width = '100%'
+  const activeTab = document.querySelector('.tab-content.active')?.id?.replace('tab-', '')
+  if (activeTab === 'stats') loadStats()
+  else if (activeTab === 'fixtures') loadFixtures()
+  else if (activeTab === 'backlog') loadBacklog()
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const res = await fetch('/api/admin-stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: storedPassword }),
+    })
+    if (res.status === 401) {
       document.getElementById('loading').style.display = 'none'
-      document.getElementById('dashboard').style.display = 'block'
-    } catch (err) {
-      document.getElementById('loading').style.display = 'none'
-      alert('Failed to load stats: ' + err.message)
+      document.getElementById('login').style.display = 'flex'
+      document.getElementById('login-err').textContent = 'Incorrect password.'
+      return
     }
+    const d = await res.json()
+    renderStats(d)
+    document.getElementById('gen-time').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  } catch (err) {
+    console.error('Stats error:', err)
+  }
+}
+
+function sc(label, value, sub='', cls='') {
+  return `<div class="stat-card ${cls}"><div class="label">${label}</div><div class="value">${value}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`
+}
+function al(cls, icon, msg) { return `<div class="alert ${cls}"><span>${icon}</span><span>${msg}</span></div>` }
+function timeSince(iso) {
+  const d = (Date.now() - new Date(iso)) / 1000
+  if (d < 3600) return Math.round(d/60) + 'm ago'
+  if (d < 86400) return Math.round(d/3600) + 'h ago'
+  return Math.round(d/86400) + 'd ago'
+}
+
+function renderStats(d) {
+  d.users = d.users || {}; d.bets = d.bets || {}; d.competitions = d.competitions || []
+  d.rounds = d.rounds || {}; d.health = d.health || {}; d.leagues = d.leagues || {}; d.engagement = d.engagement || {}
+
+  const health = []
+  if (d.health.unsettledBetsOver48h === 0) health.push(al('ok','✓','All bets settled — no stale bets.'))
+  else health.push(al('err','⚠',`${d.health.unsettledBetsOver48h} unsettled bet(s) older than 48h.`))
+  if (d.rounds.currentlyOpen > 0) health.push(al('ok','✓',`${d.rounds.currentlyOpen} round(s) open for betting.`))
+  else health.push(al('warn','⚠','No rounds currently open.'))
+  health.push(al('ok','✓',`Platform operational — ${d.users.total||0} registered users.`))
+  document.getElementById('health-alerts').innerHTML = health.join('')
+
+  document.getElementById('user-stats').innerHTML = [
+    sc('Total users', d.users.total||0, '', 'green'),
+    sc('New this week', d.users.newThisWeek||0),
+    sc('New this month', d.users.newThisMonth||0),
+    sc('Active (30d)', d.users.activeLast30Days||0, 'placed ≥1 bet', 'green'),
+    sc('Inactive', d.users.inactive||0),
+  ].join('')
+
+  document.getElementById('countries-table').innerHTML =
+    (d.users.topCountries||[]).map(c=>`<tr><td>${c.country}</td><td class="mono">${c.count}</td></tr>`).join('')
+    || '<tr><td colspan="2" style="color:var(--dim)">No data</td></tr>'
+
+  document.getElementById('engagement-stats').innerHTML = [
+    sc('Ad views this week', d.engagement.adViewsThisWeek||0),
+    sc('Unique viewers', d.engagement.adViewUniqueUsers||0),
+  ].join('')
+
+  document.getElementById('bet-stats').innerHTML = [
+    sc('Total bets', d.bets.total||0, 'all time', 'green'),
+    sc('This week', d.bets.thisWeek||0),
+    sc('Avg stake', d.bets.avgStakeAllTime ? d.bets.avgStakeAllTime+' nuts' : '—'),
+    sc('Settled', d.bets.settled||0),
+    sc('Unsettled', d.bets.unsettled||0, 'active', d.bets.unsettled>0?'yellow':''),
+  ].join('')
+
+  document.getElementById('comp-table').innerHTML = (d.competitions||[])
+    .map(c=>`<tr><td class="sg" style="font-weight:600">${c.name}</td><td class="mono">${c.totalBets}</td><td class="mono">${c.betsThisWeek}</td><td class="mono">${c.avgStake>0?c.avgStake+' nuts':'—'}</td><td class="mono">${c.activeWallets}</td><td class="mono">${c.totalBalance?.toLocaleString()} nuts</td></tr>`)
+    .join('') || '<tr><td colspan="6" style="color:var(--dim)">No data</td></tr>'
+
+  document.getElementById('round-stats').innerHTML = [
+    sc('Open rounds', d.rounds.currentlyOpen||0, 'accepting bets', d.rounds.currentlyOpen>0?'green':'yellow'),
+    sc('Settled this week', d.rounds.settledThisWeek||0),
+    sc('Stale bets (>48h)', d.health.unsettledBetsOver48h||0, 'unsettled', d.health.unsettledBetsOver48h>0?'red':''),
+  ].join('')
+
+  document.getElementById('league-stats').innerHTML = [
+    sc('Total leagues', d.leagues.total||0),
+    sc('Approved', d.leagues.approved||0, '', 'green'),
+    sc('Pending', d.leagues.pending||0, '', d.leagues.pending>0?'yellow':''),
+  ].join('')
+
+  document.getElementById('league-table').innerHTML = (d.leagues.topLeagues||[])
+    .map(l=>`<tr><td>${l.name}</td><td class="mono">${l.members}</td><td><span class="badge-${l.status==='approved'?'green':'yellow'}">${l.status}</span></td></tr>`)
+    .join('') || '<tr><td colspan="3" style="color:var(--dim)">No leagues yet</td></tr>'
+}
+
+// ── Fixtures ──────────────────────────────────────────────────────────────────
+const COMPETITIONS = [
+  { key: 'epl',          name: 'Premier League',        icon: '⚽', route: `${BYN}/api/football-model` },
+  { key: 'laliga',       name: 'La Liga',               icon: '⚽', route: `${BYN}/api/football-model` },
+  { key: 'ucl',          name: 'Champions League',      icon: '⚽', route: `${BYN}/api/football-model` },
+  { key: 'fifa_wc',      name: 'FIFA WC 26',            icon: '⚽', route: `${BYN}/api/football-model` },
+  { key: 'euros',        name: 'Euros',                 icon: '⚽', route: `${BYN}/api/football-model` },
+  { key: 'nations_champ',name: 'Nations Championship',  icon: '🏉', route: `${BYN}/api/rugby-fixtures` },
+  { key: 'rugby_champ',  name: 'Rugby Championship',    icon: '🏉', route: `${BYN}/api/rugby-fixtures` },
+  { key: 'six_nations',  name: 'Six Nations',           icon: '🏉', route: `${BYN}/api/rugby-fixtures` },
+  { key: 'urc',          name: 'URC',                   icon: '🏉', route: `${BYN}/api/rugby-fixtures` },
+  { key: 'prem_rugby',   name: 'Premiership Rugby',     icon: '🏉', route: `${BYN}/api/rugby-fixtures` },
+  { key: 'super_rugby',  name: 'Super Rugby Pacific',   icon: '🏉', route: `${BYN}/api/rugby-fixtures` },
+  { key: 'rugby_wc',     name: 'Rugby World Cup',       icon: '🏉', route: `${BYN}/api/rugby-fixtures` },
+  { key: 'nfl',          name: 'NFL',                   icon: '🏈', route: `${BYN}/api/nfl-model` },
+  { key: 'tennis',       name: 'Wimbledon',             icon: '🎾', route: `${BYN}/api/tennis-model` },
+  { key: 'pga',          name: 'The Open',              icon: '⛳', route: `${BYN}/api/golf-model` },
+  { key: 'f1',           name: 'F1',                    icon: '🏎️', route: `${BYN}/api/f1-fixtures`, special: true },
+]
+
+async function fetchCompFixtures(comp) {
+  try {
+    const url = comp.special ? comp.route : `${comp.route}?competitionKey=${comp.key}`
+    const res = await fetch(url)
+    if (!res.ok) return { fixtures: [], nextFixtureDate: null }
+    const data = await res.json()
+
+    if (comp.special) {
+      // F1 format
+      return {
+        fixtures: data.race ? [{ name: data.race.name, kickoff: data.race.date }] : [],
+        nextFixtureDate: data.race?.date || null,
+      }
+    }
+
+    return {
+      fixtures: data.fixtures || [],
+      nextFixtureDate: data.nextFixture || data.seasonOpens || null,
+    }
+  } catch {
+    return { fixtures: [], nextFixtureDate: null }
+  }
+}
+
+function formatDate(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  const now = new Date()
+  const diff = Math.round((d - now) / (1000 * 60 * 60 * 24))
+  const label = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+  if (diff < 0) return label + ' (past)'
+  if (diff === 0) return label + ' (today)'
+  if (diff === 1) return label + ' (tomorrow)'
+  return label + ` (in ${diff}d)`
+}
+
+async function loadFixtures() {
+  const container = document.getElementById('fixtures-table')
+  container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted)"><div class="spinner" style="margin:0 auto 8px"></div>Fetching all competition fixtures...</div>'
+
+  const results = await Promise.all(COMPETITIONS.map(async comp => {
+    const data = await fetchCompFixtures(comp)
+    return { comp, ...data }
+  }))
+
+  let html = ''
+  const withFixtures = results.filter(r => r.fixtures.length > 0)
+  const noFixtures = results.filter(r => r.fixtures.length === 0)
+
+  // Sort: by earliest fixture date
+  withFixtures.sort((a, b) => {
+    const da = new Date(a.fixtures[0]?.kickoff || '9999')
+    const db = new Date(b.fixtures[0]?.kickoff || '9999')
+    return da - db
+  })
+
+  if (withFixtures.length) {
+    withFixtures.forEach(({ comp, fixtures, nextFixtureDate }) => {
+      const next = fixtures[0]
+      const date = formatDate(next?.kickoff)
+      const daysUntil = next?.kickoff ? Math.round((new Date(next.kickoff) - new Date()) / (1000*60*60*24)) : null
+      const badge = daysUntil !== null && daysUntil <= 0 ? '<span class="badge-red">Live</span>'
+        : daysUntil !== null && daysUntil <= 7 ? '<span class="badge-yellow">This week</span>'
+        : '<span class="badge-green">Upcoming</span>'
+      html += `<div class="fixture-row">
+        <div class="fixture-comp"><span class="icon">${comp.icon}</span>${comp.name}</div>
+        <div class="fixture-detail">${next?.name || next?.stage || '—'}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${badge}
+          <div class="fixture-date mono">${date}</div>
+        </div>
+      </div>`
+    })
   }
 
-  function statCard(label, value, sub = '', cls = '') {
-    return `<div class="stat-card ${cls}"><div class="label">${label}</div><div class="value">${value}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div>`
+  if (noFixtures.length) {
+    html += `<div style="padding:10px 14px;background:var(--bg);font-size:11px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-weight:600;border-top:1px solid var(--border)">No current fixtures</div>`
+    noFixtures.forEach(({ comp, nextFixtureDate }) => {
+      const nextLabel = nextFixtureDate ? formatDate(nextFixtureDate) : 'TBC'
+      html += `<div class="fixture-row">
+        <div class="fixture-comp"><span class="icon">${comp.icon}</span>${comp.name}</div>
+        <div class="fixture-detail" style="color:var(--dim)">No fixtures in next 21 days</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="badge-dim">Off-season</span>
+          <div class="fixture-date mono" style="color:var(--dim)">Next: ${nextLabel}</div>
+        </div>
+      </div>`
+    })
   }
 
-  function alert_(cls, icon, msg) {
-    return `<div class="alert ${cls}"><span>${icon}</span><span>${msg}</span></div>`
+  container.innerHTML = html || '<div style="padding:24px;text-align:center;color:var(--dim)">No fixture data available</div>'
+}
+
+// ── Backlog ───────────────────────────────────────────────────────────────────
+async function loadBacklog() {
+  const container = document.getElementById('backlog-content')
+  container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted)">Fetching backlog from GitHub...</div>'
+
+  try {
+    const res = await fetch(GITHUB_BACKLOG)
+    if (!res.ok) throw new Error('Failed to fetch')
+    const md = await res.text()
+    renderBacklog(md, container)
+  } catch {
+    container.innerHTML = '<div style="color:var(--red);padding:16px">Failed to load backlog from GitHub. Check network or repository access.</div>'
   }
+}
 
-  function timeSince(iso) {
-    const d = (Date.now() - new Date(iso)) / 1000
-    if (d < 3600) return Math.round(d / 60) + 'm ago'
-    if (d < 86400) return Math.round(d / 3600) + 'h ago'
-    return Math.round(d / 86400) + 'd ago'
-  }
+function renderBacklog(md, container) {
+  // Simple markdown renderer for our backlog format
+  const lines = md.split('\n')
+  let html = ''
 
-  function renderDashboard(d) {
-    // Defensive defaults in case any section is missing
-    d.users = d.users || { total: 0, newThisWeek: 0, newThisMonth: 0, activeLast30Days: 0, inactive: 0, topCountries: [] }
-    d.bets = d.bets || { total: 0, thisWeek: 0, avgStakeAllTime: 0, settled: 0, unsettled: 0 }
-    d.competitions = d.competitions || []
-    d.rounds = d.rounds || { currentlyOpen: 0, openDetails: [], settledThisWeek: 0 }
-    d.health = d.health || { unsettledBetsOver48h: 0, unsettledDetails: [] }
-    d.leagues = d.leagues || { total: 0, approved: 0, pending: 0, topLeagues: [] }
-    d.engagement = d.engagement || { adViewsThisWeek: 0, adViewUniqueUsers: 0 }
-    // Generated at
-    document.getElementById('gen-time').textContent =
-      'Generated ' + new Date(d.generatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-
-    // ── Health ──
-    const health = []
-    if (d.health.unsettledBetsOver48h === 0) {
-      health.push(alert_('ok', '✓', 'All bets settled within 48 hours — no stale bets.'))
-    } else {
-      health.push(alert_('err', '⚠', `${d.health.unsettledBetsOver48h} unsettled bet${d.health.unsettledBetsOver48h > 1 ? 's' : ''} older than 48 hours — needs attention.`))
+  lines.forEach(line => {
+    if (line.startsWith('# ')) {
+      html += `<h2 class="sg">${line.slice(2)}</h2>`
+    } else if (line.startsWith('## ')) {
+      html += `<h2 class="sg">${line.slice(3)}</h2>`
+    } else if (line.startsWith('### ')) {
+      html += `<h3>${line.slice(4)}</h3>`
+    } else if (line.startsWith('- [x] ')) {
+      html += `<li class="done">${line.slice(6)}</li>`
+    } else if (line.startsWith('- [ ] ')) {
+      html += `<li>${line.slice(6)}</li>`
+    } else if (line.startsWith('- ')) {
+      html += `<li>${line.slice(2)}</li>`
+    } else if (line.startsWith('|') && line.includes('|')) {
+      // Skip table rows (separator lines)
+      if (line.includes('---')) return
+      const cells = line.split('|').filter(c => c.trim())
+      html += '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>'
+    } else if (line.trim() === '---') {
+      html += '<hr style="border:none;border-top:1px solid var(--border);margin:16px 0"/>'
+    } else if (line.trim()) {
+      html += `<p>${line}</p>`
     }
-    if (d.rounds.currentlyOpen > 0) {
-      health.push(alert_('ok', '✓', `${d.rounds.currentlyOpen} round${d.rounds.currentlyOpen > 1 ? 's' : ''} currently open for betting.`))
-    } else {
-      health.push(alert_('warn', '⚠', 'No rounds currently open — check competition settings.'))
-    }
-    if (d.users.total === 0) {
-      health.push(alert_('warn', 'ℹ', 'No registered users yet.'))
-    } else {
-      health.push(alert_('ok', '✓', `Platform operational — ${d.users.total} registered user${d.users.total > 1 ? 's' : ''}.`))
-    }
-    document.getElementById('health-alerts').innerHTML = health.join('')
+  })
 
-    // ── Users ──
-    document.getElementById('user-stats').innerHTML = [
-      statCard('Total users', d.users.total, '', 'green'),
-      statCard('New this week', d.users.newThisWeek),
-      statCard('New this month', d.users.newThisMonth),
-      statCard('Active (30 days)', d.users.activeLast30Days, 'placed at least 1 bet', 'green'),
-      statCard('Inactive', d.users.inactive, 'no bets in 30 days'),
-    ].join('')
+  // Wrap orphan li elements in ul
+  html = html.replace(/(<li.*?>.*?<\/li>\s*)+/gs, match => `<ul>${match}</ul>`)
+  // Wrap table rows in table
+  html = html.replace(/(<tr>.*?<\/tr>\s*)+/gs, match => `<div class="table-wrap" style="margin:8px 0"><table>${match}</table></div>`)
 
-    // Countries
-    document.getElementById('countries-table').innerHTML =
-      (d.users.topCountries || []).map(c =>
-        `<tr><td>${c.country}</td><td class="mono">${c.count}</td></tr>`
-      ).join('') || '<tr><td colspan="2" style="color:var(--dim)">No data</td></tr>'
+  container.innerHTML = html
+}
 
-    // ── Engagement ──
-    document.getElementById('engagement-stats').innerHTML = [
-      statCard('Ad views this week', d.engagement.adViewsThisWeek),
-      statCard('Unique ad viewers', d.engagement.adViewUniqueUsers),
-    ].join('')
-
-    // ── Bets ──
-    document.getElementById('bet-stats').innerHTML = [
-      statCard('Total bets', d.bets.total, 'all time', 'green'),
-      statCard('Bets this week', d.bets.thisWeek),
-      statCard('Avg stake', d.bets.avgStakeAllTime ? d.bets.avgStakeAllTime + ' nuts' : '—'),
-      statCard('Settled', d.bets.settled),
-      statCard('Unsettled', d.bets.unsettled, 'active rounds', d.bets.unsettled > 0 ? 'yellow' : ''),
-    ].join('')
-
-    // ── Competitions ──
-    document.getElementById('comp-table').innerHTML =
-      (d.competitions || []).map(c =>
-        `<tr>
-          <td class="sg" style="font-weight:600;">${c.name}</td>
-          <td class="mono">${c.totalBets}</td>
-          <td class="mono">${c.betsThisWeek}</td>
-          <td class="mono">${c.avgStake > 0 ? c.avgStake + ' nuts' : '—'}</td>
-          <td class="mono">${c.activeWallets}</td>
-          <td class="mono">${c.totalBalance.toLocaleString()} nuts</td>
-        </tr>`
-      ).join('') || '<tr><td colspan="6" style="color:var(--dim)">No data</td></tr>'
-
-    // ── Rounds ──
-    document.getElementById('round-stats').innerHTML = [
-      statCard('Open rounds', d.rounds.currentlyOpen, 'accepting bets', d.rounds.currentlyOpen > 0 ? 'green' : 'yellow'),
-      statCard('Settled this week', d.rounds.settledThisWeek),
-      statCard('Stale bets (>48h)', d.health.unsettledBetsOver48h, 'unsettled', d.health.unsettledBetsOver48h > 0 ? 'red' : ''),
-    ].join('')
-
-    if (d.rounds.openDetails?.length) {
-      document.getElementById('open-rounds-table').innerHTML = `
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Round</th><th>Open since</th></tr></thead>
-            <tbody>${d.rounds.openDetails.map(r =>
-              `<tr><td class="mono">Round ${r.roundNumber}</td><td class="mono">${timeSince(r.openSince)}</td></tr>`
-            ).join('')}</tbody>
-          </table>
-        </div>`
-    }
-
-    // ── Leagues ──
-    document.getElementById('league-stats').innerHTML = [
-      statCard('Total leagues', d.leagues.total),
-      statCard('Approved', d.leagues.approved, '', 'green'),
-      statCard('Pending approval', d.leagues.pending, '', d.leagues.pending > 0 ? 'yellow' : ''),
-    ].join('')
-
-    document.getElementById('league-table').innerHTML =
-      (d.leagues.topLeagues || []).map(l =>
-        `<tr>
-          <td>${l.name}</td>
-          <td class="mono">${l.members}</td>
-          <td><span class="badge-${l.status === 'approved' ? 'green' : 'yellow'}">${l.status}</span></td>
-        </tr>`
-      ).join('') || '<tr><td colspan="3" style="color:var(--dim)">No leagues yet</td></tr>'
-  }
-
-  // Auto-focus password field
-  document.getElementById('pwd-input').focus()
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.getElementById('pwd').focus()
 </script>
-
 </body>
 </html>
